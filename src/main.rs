@@ -5,12 +5,10 @@ use bevy_rapier3d::prelude::*;
 use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 
 
-
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
-        .add_plugin(RapierDebugRenderPlugin::default())
         .add_startup_system(setup_graphics)
         .add_startup_system(setup_physics)
         .add_plugin(EditorPlugin::default())
@@ -29,7 +27,11 @@ fn setup_graphics(mut commands: Commands) {
     });
 }
 
-fn setup_physics(mut commands: Commands) {
+fn setup_physics(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>
+) {
     /* Create the ground. */
     commands
         .spawn(Collider::cuboid(100.0, 0.1, 100.0))
@@ -37,10 +39,15 @@ fn setup_physics(mut commands: Commands) {
 
     /* Create the bouncing ball. */
     commands
-        .spawn(RigidBody::Dynamic)
+        .spawn(PbrBundle {
+            mesh: meshes.add(Mesh::from(shape::Circle {radius: 0.5, ..Default::default() })),
+            material: materials.add(Color::rgb(0.8, 0.7, 0.6).into()),
+            transform: Transform::from_xyz(0.0, 4.0, 0.0),
+            ..default()
+        })
+        .insert(RigidBody::Dynamic)
         .insert(Collider::ball(0.5))
         .insert(Restitution::coefficient(0.7))
-        .insert(TransformBundle::from(Transform::from_xyz(0.0, 4.0, 0.0)))
         .insert(Player);
 }
 
